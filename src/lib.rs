@@ -68,16 +68,9 @@ mod tests {
     use super::get_locale;
     extern crate std;
 
-    #[ignore = "must be run seperately from other UNIX tests"]
+    #[cfg(not(target_os = "linux"))]
     #[test]
     fn can_obtain_locale() {
-        // Docker doesn't set these. Simulate it instead.
-        #[cfg(target_os = "linux")]
-        {
-            std::env::set_var("LANG", "fr_FR.UTF-8");
-            std::env::set_var("LC_ALL", "fr_FR.UTF-8");
-        }
-
         assert!(
             get_locale().is_some(),
             "locale should be present on most systems"
