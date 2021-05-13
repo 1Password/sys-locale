@@ -1,0 +1,26 @@
+[package]
+name = "sys-locale"
+version = "0.1.0"
+authors = ["1Password"]
+description = "Small and lightweight library to obtain the active system locale"
+keywords = ["locale", "i18n", "localization", "nostd"]
+repository = "https://github.com/1Password/sys-locale"
+edition = "2018"
+license = "MIT OR Apache-2.0"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[build-dependencies]
+cc = "1.0"
+
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"
+
+[target.'cfg(all(unix, not(target_os = "android")))'.dependencies]
+cstr_core = "0.2"
+
+[target.'cfg(windows)'.dependencies]
+winapi = { version = "0.3", features = ["winnls"] }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+web-sys = { version = "0.3", features = ["Window", "Navigator"] }
