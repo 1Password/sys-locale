@@ -4,6 +4,16 @@ Notable changes to this project will be documented in the [keep a changelog](htt
 
 ## [Unreleased]
 
+## [0.2.0] - 2022-02-28
+
+### Fixed
+
+- Fixed a soundness issue on Linux and BSDs by querying the environment directly instead of using libc setlocale. The libc setlocale is not safe for use in a multi-threaded context.
+
+### Changed
+
+- No longer `no_std` on Linux and BSDs
+
 ## [0.1.0] - 2021-05-13
 
 Initial release

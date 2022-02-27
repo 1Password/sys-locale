@@ -7,8 +7,15 @@
 //! - Linux, BSD, and other UNIX variations
 //! - WebAssembly
 //! - Windows
-#![no_std]
-
+#[cfg_attr(
+    any(
+        not(unix),
+        target_os = "macos",
+        target_os = "ios",
+        target_os = "android"
+    ),
+    no_std
+)]
 extern crate alloc;
 use alloc::string::String;
 

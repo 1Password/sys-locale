@@ -9,7 +9,7 @@
 A small and lightweight Rust library to obtain the locale the active locale on the system.
 
 `sys-locale` is small library for obtaining the current locale set for the system or application with the relevant platform APIs.
-The library is also `no_std` compatible by default, only relying on `alloc`. 
+The library is also `no_std` compatible except on Linux and BSD, only relying on `alloc`.
 
 Platform support currently includes:
 - Android
