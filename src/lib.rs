@@ -7,7 +7,7 @@
 //! - Linux, BSD, and other UNIX variations
 //! - WebAssembly
 //! - Windows
-#[cfg_attr(
+#![cfg_attr(
     any(
         not(unix),
         target_os = "macos",
