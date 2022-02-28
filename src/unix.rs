@@ -15,7 +15,10 @@ pub(crate) fn get() -> Option<String> {
 
 fn parse_locale_code(code: &str) -> Option<String> {
     // Some locales are returned with the char encoding too: `en_US.UTF-8`
-    code.split_once('.').map(|(locale, _enc)| locale.to_owned())
+    // TODO: Once we bump MSRV >= 1.52, remove this allow and clean up
+    #[allow(clippy::manual_split_once)]
+    #[allow(clippy::needless_splitn)]
+    code.splitn(2, '.').next().map(String::from)
 }
 
 #[cfg(test)]
