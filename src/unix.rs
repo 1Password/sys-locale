@@ -15,7 +15,7 @@ pub(crate) fn get() -> Option<String> {
 
 fn parse_locale_code(code: &str) -> Option<String> {
     // Some locales are returned with the char encoding too: `en_US.UTF-8`
-    code.splitn(2, '.').next().map(String::from)
+    code.split_once('.').map(|(locale, _enc)| locale.to_owned())
 }
 
 #[cfg(test)]
