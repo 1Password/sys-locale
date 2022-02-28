@@ -1,3 +1,4 @@
+#![allow(unknown_lints)]
 use std::env;
 
 const LC_ALL: &str = "LC_ALL";
