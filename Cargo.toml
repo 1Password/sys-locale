@@ -13,11 +13,12 @@ license = "MIT OR Apache-2.0"
 [build-dependencies]
 cc = "1.0"
 
-[target.'cfg(unix)'.dependencies]
+[target.'cfg(target_os = "android")'.dependencies]
 libc = "0.2"
 
-[target.'cfg(all(unix, not(target_os = "android")))'.dependencies]
+[target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]
 cstr_core = "0.2"
+libc = "0.2"
 
 [target.'cfg(windows)'.dependencies]
 winapi = { version = "0.3", features = ["winnls"] }
