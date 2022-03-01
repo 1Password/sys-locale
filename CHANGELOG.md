@@ -4,7 +4,7 @@ Notable changes to this project will be documented in the [keep a changelog](htt
 
 ## [Unreleased]
 
-## [0.2.0] - 2022-02-28
+## [0.2.0] - 2022-03-01
 
 ### Fixed
 
@@ -18,5 +18,6 @@ Notable changes to this project will be documented in the [keep a changelog](htt
 
 Initial release
 
-[Unreleased]: https://github.com/1Password/sys-locale/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/1Password/sys-locale/compare/v0.2.0...HEAD
 [0.1.0]: https://github.com/1Password/sys-locale/releases/tag/v0.1.0
+[0.2.0]: https://github.com/1Password/sys-locale/releases/tag/v0.2.0
