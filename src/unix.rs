@@ -1,15 +1,36 @@
 #![allow(unknown_lints)]
-use std::env;
+use std::{env, ffi::OsStr};
 
 const LC_ALL: &str = "LC_ALL";
 const LC_CTYPE: &str = "LC_CTYPE";
 const LANG: &str = "LANG";
 
+/// Environment variable access abstraction to allow testing without
+/// mutating env variables.
+///
+/// Use [StdEnv] to query [std::env]
+trait EnvAccess {
+    /// See also [std::env::var]
+    fn get(&self, key: impl AsRef<OsStr>) -> Option<String>;
+}
+
+/// Proxy to [std::env]
+struct StdEnv;
+impl EnvAccess for StdEnv {
+    fn get(&self, key: impl AsRef<OsStr>) -> Option<String> {
+        env::var(key).ok()
+    }
+}
+
 pub(crate) fn get() -> Option<String> {
-    let code = env::var(LC_ALL)
-        .or_else(|_| env::var(LC_CTYPE))
-        .or_else(|_| env::var(LANG))
-        .ok()?;
+    _get(&StdEnv)
+}
+
+fn _get(env: &impl EnvAccess) -> Option<String> {
+    let code = env
+        .get(LC_ALL)
+        .or_else(|| env.get(LC_CTYPE))
+        .or_else(|| env.get(LANG))?;
 
     parse_locale_code(&code)
 }
@@ -24,8 +45,18 @@ fn parse_locale_code(code: &str) -> Option<String> {
 
 #[cfg(test)]
 mod tests {
-    use super::{get, parse_locale_code, LANG, LC_ALL, LC_CTYPE};
-    use std::env;
+    use super::{parse_locale_code, EnvAccess, _get, LANG, LC_ALL, LC_CTYPE};
+    use std::{
+        collections::HashMap,
+        ffi::{OsStr, OsString},
+    };
+
+    type MockEnv = HashMap<OsString, String>;
+    impl EnvAccess for MockEnv {
+        fn get(&self, key: impl AsRef<OsStr>) -> Option<String> {
+            self.get(key.as_ref()).cloned()
+        }
+    }
 
     const PARSE_LOCALE: &str = "fr_FR";
 
@@ -45,22 +76,20 @@ mod tests {
 
     #[test]
     fn env_priority() {
-        env::remove_var(LANG);
-        env::remove_var(LC_ALL);
-        env::remove_var(LC_CTYPE);
-        assert_eq!(get(), None);
+        let mut env = MockEnv::new();
+        assert_eq!(_get(&env), None);
 
         // These locale names are technically allowed and some systems may still
         // defined aliases such as these but the glibc sources mention that this
         // should be considered deprecated
 
-        env::set_var(LANG, "invalid");
-        assert_eq!(get().as_deref(), Some("invalid"));
+        env.insert(LANG.into(), "invalid".to_owned());
+        assert_eq!(_get(&env).as_deref(), Some("invalid"));
 
-        env::set_var(LC_CTYPE, "invalid-also");
-        assert_eq!(get().as_deref(), Some("invalid-also"));
+        env.insert(LC_CTYPE.into(), "invalid-also".to_owned());
+        assert_eq!(_get(&env).as_deref(), Some("invalid-also"));
 
-        env::set_var(LC_ALL, "invalid-again");
-        assert_eq!(get().as_deref(), Some("invalid-again"));
+        env.insert(LC_ALL.into(), "invalid-again".to_owned());
+        assert_eq!(_get(&env).as_deref(), Some("invalid-again"));
     }
 }
