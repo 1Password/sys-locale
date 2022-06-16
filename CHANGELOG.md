@@ -4,6 +4,12 @@ Notable changes to this project will be documented in the [keep a changelog](htt
 
 ## [Unreleased]
 
+## [0.2.1] - 2022-06-16
+
+### New
+
+- The crate now supports being used via WASM in a WebWorker environment.
+
 ## [0.2.0] - 2022-03-01
 
 ### Fixed
@@ -21,3 +27,4 @@ Initial release
 [Unreleased]: https://github.com/1Password/sys-locale/compare/v0.2.0...HEAD
 [0.1.0]: https://github.com/1Password/sys-locale/releases/tag/v0.1.0
 [0.2.0]: https://github.com/1Password/sys-locale/releases/tag/v0.2.0
+[0.2.1]: https://github.com/1Password/sys-locale/releases/tag/v0.2.1
