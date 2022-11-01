@@ -40,7 +40,7 @@ fn parse_locale_code(code: &str) -> Option<String> {
     // TODO: Once we bump MSRV >= 1.52, remove this allow and clean up
     #[allow(clippy::manual_split_once)]
     #[allow(clippy::needless_splitn)]
-    code.splitn(2, '.').next().map(String::from)
+    code.splitn(2, '.').next().map(|s| s.replace('_', "-"))
 }
 
 #[cfg(test)]
@@ -58,7 +58,7 @@ mod tests {
         }
     }
 
-    const PARSE_LOCALE: &str = "fr_FR";
+    const PARSE_LOCALE: &str = "fr-FR";
 
     #[test]
     fn parse_identifier() {
