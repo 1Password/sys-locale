@@ -1,12 +1,51 @@
 use alloc::{string::String, vec::Vec};
-use core_foundation_sys::{
-    array::{CFArrayGetCount, CFArrayGetValueAtIndex, CFArrayRef},
-    base::{Boolean, CFIndex, CFRange, CFRelease},
-    string::{kCFStringEncodingUTF8, CFStringGetBytes, CFStringGetLength, CFStringRef},
-};
+use core::ffi::c_void;
 
+type CFIndex = isize;
+type Boolean = u8;
+type CFStringEncoding = u32;
+
+#[allow(non_upper_case_globals)]
+const kCFStringEncodingUTF8: CFStringEncoding = 0x08000100;
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+struct CFRange {
+    pub location: CFIndex,
+    pub length: CFIndex,
+}
+
+type CFTypeRef = *const c_void;
+
+#[repr(C)]
+struct __CFArray(c_void);
+type CFArrayRef = *const __CFArray;
+
+#[repr(C)]
+struct __CFString(c_void);
+type CFStringRef = *const __CFString;
+
+// Most of these definitions come from `core-foundation-sys`, but we want this crate
+// to be `no_std` and `core-foundation-sys` isn't currently.
 #[link(name = "CoreFoundation", kind = "framework")]
 extern "C" {
+    fn CFArrayGetCount(theArray: CFArrayRef) -> CFIndex;
+    fn CFArrayGetValueAtIndex(theArray: CFArrayRef, idx: CFIndex) -> *const c_void;
+
+    fn CFStringGetLength(theString: CFStringRef) -> CFIndex;
+    fn CFStringGetBytes(
+        theString: CFStringRef,
+        range: CFRange,
+        encoding: CFStringEncoding,
+        lossByte: u8,
+        isExternalRepresentation: Boolean,
+        buffer: *mut u8,
+        maxBufLen: CFIndex,
+        usedBufLen: *mut CFIndex,
+    ) -> CFIndex;
+
+    fn CFRelease(cf: CFTypeRef);
+
     fn CFLocaleCopyPreferredLanguages() -> CFArrayRef;
 }
 
