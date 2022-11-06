@@ -1,6 +1,6 @@
 [package]
 name = "sys-locale"
-version = "0.2.2"
+version = "0.2.3"
 authors = ["1Password"]
 description = "Small and lightweight library to obtain the active system locale"
 keywords = ["locale", "i18n", "localization", "nostd"]
