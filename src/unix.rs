@@ -59,6 +59,7 @@ mod tests {
     }
 
     const PARSE_LOCALE: &str = "fr-FR";
+    const LANG_PARSE_LOCALE: &str = "fr_FR";
 
     #[test]
     fn parse_identifier() {
@@ -71,7 +72,12 @@ mod tests {
         assert_eq!(
             parse_locale_code(PARSE_LOCALE).as_deref(),
             Some(PARSE_LOCALE)
-        )
+        );
+
+        assert_eq!(
+            parse_locale_code(LANG_PARSE_LOCALE).as_deref(),
+            Some(PARSE_LOCALE)
+        );
     }
 
     #[test]

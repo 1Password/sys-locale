@@ -75,12 +75,10 @@ mod tests {
     use super::get_locale;
     extern crate std;
 
-    #[cfg(not(target_os = "linux"))]
     #[test]
     fn can_obtain_locale() {
-        assert!(
-            get_locale().is_some(),
-            "locale should be present on most systems"
-        )
+        let locale = get_locale().expect("locale should be present on most systems");
+        assert!(!locale.is_empty(), "locale string was empty");
+        assert!(!locale.ends_with('\0'), "locale contained trailing NUL");
     }
 }
