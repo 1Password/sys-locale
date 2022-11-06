@@ -4,6 +4,14 @@ Notable changes to this project will be documented in the [keep a changelog](htt
 
 ## [Unreleased]
 
+## [0.2.2] - 2022-11-06
+
+### Changed
+- The Apple backend has been rewritten in pure Rust instead of Objective-C.
+
+### Fixed
+- The locale returned on UNIX systems is now always a correctly formatted BCP-47 tag.
+
 ## [0.2.1] - 2022-06-16
 
 ### New
@@ -24,7 +32,8 @@ Notable changes to this project will be documented in the [keep a changelog](htt
 
 Initial release
 
-[Unreleased]: https://github.com/1Password/sys-locale/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/1Password/sys-locale/compare/v0.2.2...HEAD
 [0.1.0]: https://github.com/1Password/sys-locale/releases/tag/v0.1.0
 [0.2.0]: https://github.com/1Password/sys-locale/releases/tag/v0.2.0
 [0.2.1]: https://github.com/1Password/sys-locale/releases/tag/v0.2.1
+[0.2.2]: https://github.com/1Password/sys-locale/releases/tag/v0.2.2
