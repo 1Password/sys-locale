@@ -1,4 +1,6 @@
 //! A small example to run on your computer to see what locale the library returns.
+#![allow(unknown_lints)]
+#![allow(clippy::uninlined_format_args)]
 
 use sys_locale::get_locale;
 
