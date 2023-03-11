@@ -6,9 +6,9 @@
 [![crates.io downloads](https://img.shields.io/crates/d/sys-locale.svg)](https://crates.io/crates/sys-locale)
 ![CI](https://github.com/1Password/sys-locale/workflows/CI/badge.svg)
 
-A small and lightweight Rust library to obtain the locale the active locale on the system.
+A small and lightweight Rust library to get the current active locale on the system.
 
-`sys-locale` is small library for obtaining the current locale set for the system or application with the relevant platform APIs. The library is also `no_std` compatible, relying only on `alloc`, except on Linux and BSD.
+`sys-locale` is small library to get the current locale set for the system or application with the relevant platform APIs. The library is also `no_std` compatible, relying only on `alloc`, except on Linux and BSD.
 
 Platform support currently includes:
 - Android
