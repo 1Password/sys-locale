@@ -15,7 +15,7 @@ Platform support currently includes:
 - iOS
 - macOS
 - Linux, BSD, and other UNIX variations
-- WebAssembly
+- WebAssembly on the web
 - Windows
 
 ```rust

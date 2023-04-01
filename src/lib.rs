@@ -5,7 +5,7 @@
 //! - iOS
 //! - macOS
 //! - Linux, BSD, and other UNIX variations
-//! - WebAssembly
+//! - WebAssembly on the web
 //! - Windows
 #![cfg_attr(
     any(
@@ -40,15 +40,22 @@ mod unix;
 ))]
 use unix as provider;
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(all(target_family = "wasm", feature = "wasm-web"))]
 mod wasm;
-#[cfg(target_arch = "wasm32")]
+#[cfg(all(target_family = "wasm", feature = "wasm-web"))]
 use wasm as provider;
 
-#[cfg(target_os = "windows")]
+#[cfg(windows)]
 mod windows;
-#[cfg(target_os = "windows")]
+#[cfg(windows)]
 use windows as provider;
+
+#[cfg(not(any(unix, all(target_family = "wasm", feature = "wasm-web"), windows)))]
+mod provider {
+    pub fn get() {
+        None
+    }
+}
 
 /// Returns the active locale for the system or application.
 ///

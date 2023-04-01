@@ -4,6 +4,13 @@ Notable changes to this project will be documented in the [keep a changelog](htt
 
 ## [Unreleased]
 
+### Changed
+- The crate now only uses `wasm-bindgen` when targeting WebAssembly on the web.
+  Use the new `wasm-web` feature to target the web.
+
+### Fixed
+- The crate now compiles for unsupported platforms.
+
 # [0.2.4] - 2023-03-07
 
 ### Changed
