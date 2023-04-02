@@ -5,7 +5,7 @@
 //! - iOS
 //! - macOS
 //! - Linux, BSD, and other UNIX variations
-//! - WebAssembly on the web
+//! - WebAssembly on the web (via the `js` feature)
 //! - Windows
 #![cfg_attr(
     any(
@@ -40,9 +40,9 @@ mod unix;
 ))]
 use unix as provider;
 
-#[cfg(all(target_family = "wasm", feature = "wasm-web"))]
+#[cfg(all(target_family = "wasm", feature = "js", not(unix)))]
 mod wasm;
-#[cfg(all(target_family = "wasm", feature = "wasm-web"))]
+#[cfg(all(target_family = "wasm", feature = "js", not(unix)))]
 use wasm as provider;
 
 #[cfg(windows)]
@@ -50,9 +50,9 @@ mod windows;
 #[cfg(windows)]
 use windows as provider;
 
-#[cfg(not(any(unix, all(target_family = "wasm", feature = "wasm-web"), windows)))]
+#[cfg(not(any(unix, all(target_family = "wasm", feature = "js", not(unix)), windows)))]
 mod provider {
-    pub fn get() {
+    pub fn get() -> Option<alloc::string::String> {
         None
     }
 }
