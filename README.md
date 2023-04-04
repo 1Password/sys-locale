@@ -15,7 +15,11 @@ Platform support currently includes:
 - iOS
 - macOS
 - Linux, BSD, and other UNIX variations
-- WebAssembly on the web (via the `js` feature)
+- WebAssembly, for the following platforms:
+    - Inside of a web browser (via the `js` feature)
+    - Emscripten (via the `UNIX` backend)
+    Further support for other WASM targets is dependent on upstream
+    support in those target's runtimes and specifications.
 - Windows
 
 ```rust
