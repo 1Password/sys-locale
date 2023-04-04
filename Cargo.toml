@@ -19,7 +19,10 @@ features = [
     "Win32_System_SystemServices"
 ]
 
-[target.'cfg(target_arch = "wasm32")'.dependencies]
-js-sys = "0.3"
-wasm-bindgen = { version = "0.2"}
-web-sys = { version = "0.3", features = ["Window", "WorkerGlobalScope", "Navigator", "WorkerNavigator"] }
+[target.'cfg(all(target_family = "wasm", not(unix)))'.dependencies]
+js-sys = { version = "0.3", optional = true }
+wasm-bindgen = { version = "0.2", optional = true }
+web-sys = { version = "0.3", features = ["Window", "WorkerGlobalScope", "Navigator", "WorkerNavigator"], optional = true }
+
+[features]
+js = ["js-sys", "wasm-bindgen", "web-sys"]
