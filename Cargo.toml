@@ -16,7 +16,7 @@ libc = "0.2"
 version = "0.45"
 features = [
     "Win32_Globalization",
-    "Win32_System_SystemServices"
+    "Win32_Foundation"
 ]
 
 [target.'cfg(all(target_family = "wasm", not(unix)))'.dependencies]
