@@ -1,4 +1,4 @@
-use alloc::{string::String, vec::Vec};
+use alloc::{string::String, vec, vec::Vec};
 use core::ffi::c_void;
 
 type CFIndex = isize;
@@ -49,7 +49,7 @@ extern "C" {
     fn CFLocaleCopyPreferredLanguages() -> CFArrayRef;
 }
 
-pub(crate) fn get() -> Option<String> {
+pub(crate) fn get() -> Vec<String> {
     let preferred_langs = unsafe {
         // SAFETY: This function is safe to call and has no invariants. Any value inside the
         // array will be owned by us.
@@ -60,10 +60,10 @@ pub(crate) fn get() -> Option<String> {
             if CFArrayGetCount(langs.0) != 0 {
                 langs
             } else {
-                return None;
+                return vec![];
             }
         } else {
-            return None;
+            return vec![];
         }
     };
 
@@ -100,7 +100,7 @@ pub(crate) fn get() -> Option<String> {
 
         // Guard against a zero-sized allocation, if that were to somehow occur.
         if capacity == 0 {
-            return None;
+            return vec![];
         }
 
         // Note: This is the number of bytes (u8) that will be written to
@@ -137,7 +137,11 @@ pub(crate) fn get() -> Option<String> {
         // This should always contain UTF-8 since we told the system to
         // write UTF-8 into the buffer, but the value is small enough that
         // using `from_utf8_unchecked` isn't worthwhile.
-        String::from_utf8(buffer).ok()
+        if let Ok(locale) = String::from_utf8(buffer) {
+            vec![locale]
+        } else {
+            vec![]
+        }
     }
 }
 

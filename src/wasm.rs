@@ -1,4 +1,5 @@
 use alloc::string::String;
+use alloc::{vec, vec::Vec};
 
 use js_sys::Object;
 use wasm_bindgen::{prelude::*, JsCast, JsValue};
@@ -43,9 +44,14 @@ fn global() -> GlobalType {
     }
 }
 
-pub(crate) fn get() -> Option<String> {
-    match global() {
+pub(crate) fn get() -> Vec<String> {
+    let locale = match global() {
         GlobalType::Window(window) => window.navigator().language(),
         GlobalType::Worker(worker) => worker.navigator().language(),
+    };
+    if let Some(locale) = locale {
+        vec![locale]
+    } else {
+        vec![]
     }
 }

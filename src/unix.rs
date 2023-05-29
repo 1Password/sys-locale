@@ -1,4 +1,5 @@
 #![allow(unknown_lints)]
+use alloc::{vec, vec::Vec};
 use std::{env, ffi::OsStr};
 
 const LC_ALL: &str = "LC_ALL";
@@ -22,17 +23,23 @@ impl EnvAccess for StdEnv {
     }
 }
 
-pub(crate) fn get() -> Option<String> {
+pub(crate) fn get() -> Vec<String> {
     _get(&StdEnv)
 }
 
-fn _get(env: &impl EnvAccess) -> Option<String> {
-    let code = env
+fn _get(env: &impl EnvAccess) -> Vec<String> {
+    let locale = env
         .get(LC_ALL)
         .or_else(|| env.get(LC_CTYPE))
-        .or_else(|| env.get(LANG))?;
+        .or_else(|| env.get(LANG))
+        .as_deref()
+        .and_then(parse_locale_code);
 
-    parse_locale_code(&code)
+    if let Some(locale) = locale {
+        vec![locale]
+    } else {
+        vec![]
+    }
 }
 
 fn parse_locale_code(code: &str) -> Option<String> {
@@ -46,6 +53,7 @@ fn parse_locale_code(code: &str) -> Option<String> {
 #[cfg(test)]
 mod tests {
     use super::{parse_locale_code, EnvAccess, _get, LANG, LC_ALL, LC_CTYPE};
+    use alloc::vec::Vec;
     use std::{
         collections::HashMap,
         ffi::{OsStr, OsString},
@@ -83,19 +91,19 @@ mod tests {
     #[test]
     fn env_priority() {
         let mut env = MockEnv::new();
-        assert_eq!(_get(&env), None);
+        assert_eq!(_get(&env), Vec::<&str>::new());
 
         // These locale names are technically allowed and some systems may still
         // defined aliases such as these but the glibc sources mention that this
         // should be considered deprecated
 
         env.insert(LANG.into(), "invalid".to_owned());
-        assert_eq!(_get(&env).as_deref(), Some("invalid"));
+        assert_eq!(_get(&env), vec!["invalid"]);
 
         env.insert(LC_CTYPE.into(), "invalid-also".to_owned());
-        assert_eq!(_get(&env).as_deref(), Some("invalid-also"));
+        assert_eq!(_get(&env), vec!["invalid-also"]);
 
         env.insert(LC_ALL.into(), "invalid-again".to_owned());
-        assert_eq!(_get(&env).as_deref(), Some("invalid-again"));
+        assert_eq!(_get(&env), vec!["invalid-again"]);
     }
 }
