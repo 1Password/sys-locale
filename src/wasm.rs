@@ -1,7 +1,7 @@
 use alloc::string::String;
-use alloc::{vec, vec::Vec};
+use alloc::vec::Vec;
 
-use js_sys::Object;
+use js_sys::{JsString, Object};
 use wasm_bindgen::{prelude::*, JsCast, JsValue};
 
 #[derive(Clone)]
@@ -45,13 +45,14 @@ fn global() -> GlobalType {
 }
 
 pub(crate) fn get() -> Vec<String> {
-    let locale = match global() {
-        GlobalType::Window(window) => window.navigator().language(),
-        GlobalType::Worker(worker) => worker.navigator().language(),
+    let languages = match global() {
+        GlobalType::Window(window) => window.navigator().languages(),
+        GlobalType::Worker(worker) => worker.navigator().languages(),
     };
-    if let Some(locale) = locale {
-        vec![locale]
-    } else {
-        vec![]
-    }
+    languages
+        .to_vec()
+        .into_iter()
+        .filter_map(|v| v.dyn_into::<JsString>().ok())
+        .map(String::from)
+        .collect()
 }
