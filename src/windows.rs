@@ -1,4 +1,5 @@
 use alloc::{string::String, vec::Vec};
+use windows_sys::Win32::Foundation::TRUE;
 use windows_sys::Win32::Globalization::{GetUserPreferredUILanguages, MUI_LANGUAGE_NAME};
 
 #[allow(clippy::as_conversions)]
@@ -7,14 +8,17 @@ pub(crate) fn get() -> impl Iterator<Item = String> {
     let mut buffer_length: u32 = 0;
 
     // Calling this with null buffer will retrieve the required buffer length
-    unsafe {
+    let success = unsafe {
         GetUserPreferredUILanguages(
             MUI_LANGUAGE_NAME,
             &mut num_languages,
             core::ptr::null_mut(),
             &mut buffer_length,
         )
-    };
+    } == TRUE;
+    if !success {
+        return Vec::new().into_iter();
+    }
 
     let mut buffer = Vec::<u16>::new();
     buffer.resize(buffer_length as usize, 0);
@@ -28,15 +32,13 @@ pub(crate) fn get() -> impl Iterator<Item = String> {
             buffer.as_mut_ptr(),
             &mut buffer_length,
         )
-    } != 0;
+    } == TRUE;
 
     if success {
         // The buffer contains names split by null char (0), and ends with two null chars (00)
-        for part in buffer.split(|i| i == &0) {
+        for part in buffer.split(|i| *i == 0).filter(|p| !p.is_empty()) {
             if let Ok(locale) = String::from_utf16(part) {
-                if !locale.is_empty() {
-                    result.push(locale);
-                }
+                result.push(locale);
             }
         }
     }
