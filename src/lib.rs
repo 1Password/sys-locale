@@ -60,7 +60,8 @@ mod provider {
 
 /// Returns the active locale for the system or application.
 ///
-/// This is equivalent to `get_locales().into_iter().next()` (the first entry).
+/// This may be equivalent to `get_locales().into_iter().next()` (the first entry),
+/// depending on the platform.
 ///
 /// # Returns
 ///
