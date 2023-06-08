@@ -1,4 +1,4 @@
-use alloc::{string::String, vec, vec::Vec};
+use alloc::{string::String, vec};
 use core::convert::TryFrom;
 
 fn get_property(name: &'static [u8]) -> Option<String> {
@@ -29,10 +29,9 @@ const COUNTRY_KEY: &[u8] = b"persist.sys.country\0";
 const LOCALEVAR_KEY: &[u8] = b"persist.sys.localevar\0";
 
 // Ported from https://android.googlesource.com/platform/frameworks/base/+/refs/heads/master/core/jni/AndroidRuntime.cpp#431
-// Adapted to use multiple locales
-fn read_locale() -> Vec<String> {
+fn read_locale() -> Option<String> {
     if let Some(locale) = get_property(LOCALE_KEY) {
-        return vec![locale];
+        return Some(locale);
     }
 
     // Android 4.0 and below
@@ -52,11 +51,11 @@ fn read_locale() -> Vec<String> {
             }
         };
 
-        return vec![language];
+        return Some(language);
     }
 
     if let Some(locale) = get_property(PRODUCT_LOCALE_KEY) {
-        return vec![locale];
+        return Some(locale);
     }
 
     let product_language = get_property(PRODUCT_LANGUAGE_KEY);
@@ -65,12 +64,12 @@ fn read_locale() -> Vec<String> {
         (Some(mut lang), Some(region)) => {
             lang.push('-');
             lang.push_str(&region);
-            vec![lang]
+            Some(lang)
         }
-        _ => vec![],
+        _ => None,
     }
 }
 
-pub(crate) fn get() -> Vec<String> {
-    read_locale()
+pub(crate) fn get() -> impl Iterator<Item = String> {
+    read_locale().into_iter()
 }

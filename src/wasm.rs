@@ -1,5 +1,4 @@
 use alloc::string::String;
-use alloc::vec::Vec;
 
 use js_sys::{JsString, Object};
 use wasm_bindgen::{prelude::*, JsCast, JsValue};
@@ -44,15 +43,15 @@ fn global() -> GlobalType {
     }
 }
 
-pub(crate) fn get() -> Vec<String> {
+pub(crate) fn get() -> impl Iterator<Item = String> {
     let languages = match global() {
         GlobalType::Window(window) => window.navigator().languages(),
         GlobalType::Worker(worker) => worker.navigator().languages(),
     };
     languages
-        .to_vec()
+        .values()
         .into_iter()
-        .filter_map(|v| v.dyn_into::<JsString>().ok())
+        .map(|v| v.dyn_into::<JsString>().ok())
+        .flatten()
         .map(String::from)
-        .collect()
 }

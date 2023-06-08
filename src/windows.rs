@@ -2,7 +2,7 @@ use alloc::{string::String, vec::Vec};
 use windows_sys::Win32::Globalization::{GetUserPreferredUILanguages, MUI_LANGUAGE_NAME};
 
 #[allow(clippy::as_conversions)]
-pub(crate) fn get() -> Vec<String> {
+pub(crate) fn get() -> impl Iterator<Item = String> {
     let mut num_languages: u32 = 0;
     let mut buffer_length: u32 = 0;
 
@@ -41,5 +41,5 @@ pub(crate) fn get() -> Vec<String> {
         }
     }
 
-    result
+    result.into_iter()
 }

@@ -18,7 +18,6 @@
 )]
 extern crate alloc;
 use alloc::string::String;
-use alloc::vec::Vec;
 
 #[cfg(target_os = "android")]
 mod android;
@@ -60,7 +59,7 @@ mod provider {
 
 /// Returns the active locale for the system or application.
 ///
-/// This may be equivalent to `get_locales().into_iter().next()` (the first entry),
+/// This may be equivalent to `get_locales().next()` (the first entry),
 /// depending on the platform.
 ///
 /// # Returns
@@ -78,7 +77,7 @@ mod provider {
 /// println!("The locale is {}", current_locale);
 /// ```
 pub fn get_locale() -> Option<String> {
-    get_locales().into_iter().next()
+    get_locales().next()
 }
 
 /// Returns the preferred locales for the system or application, in descending order of preference.
@@ -93,13 +92,12 @@ pub fn get_locale() -> Option<String> {
 /// ```no_run
 /// use sys_locale::get_locales;
 ///
-/// let locales = get_locales();
-/// let fallback = "en-US".to_string();
+/// let mut  locales = get_locales();
 ///
-/// println!("The most preferred locale is {}", locales.first().unwrap_or(&fallback));
-/// println!("The least preferred locale is {}", locales.last().unwrap_or(&fallback));
+/// println!("The most preferred locale is {}", locales.next().unwrap_or("en-US".to_string()));
+/// println!("The least preferred locale is {}", locales.last().unwrap_or("en-US".to_string()));
 /// ```
-pub fn get_locales() -> Vec<String> {
+pub fn get_locales() -> impl Iterator<Item = String> {
     provider::get()
 }
 
@@ -111,8 +109,7 @@ mod tests {
     #[test]
     fn can_obtain_locale() {
         let locales = get_locales();
-        assert!(!locales.is_empty(), "locales vec was empty");
-        for (i, locale) in locales.into_iter().enumerate() {
+        for (i, locale) in locales.enumerate() {
             assert!(!locale.is_empty(), "locale string {} was empty", i);
             assert!(
                 !locale.ends_with('\0'),
