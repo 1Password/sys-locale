@@ -52,8 +52,8 @@ use windows as provider;
 
 #[cfg(not(any(unix, all(target_family = "wasm", feature = "js", not(unix)), windows)))]
 mod provider {
-    pub fn get() -> alloc::vec::Vec<alloc::string::String> {
-        alloc::vec::Vec::new()
+    pub fn get() -> impl core::iter::Iterator<Item = String> {
+        core::iter::empty()
     }
 }
 
