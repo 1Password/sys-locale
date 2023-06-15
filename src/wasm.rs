@@ -51,7 +51,6 @@ pub(crate) fn get() -> impl Iterator<Item = String> {
     languages
         .values()
         .into_iter()
-        .map(|v| v.dyn_into::<JsString>().ok())
-        .flatten()
+        .flat_map(|v| v.and_then(|v| v.dyn_into::<JsString>()))
         .map(String::from)
 }
