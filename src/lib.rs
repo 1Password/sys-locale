@@ -103,11 +103,12 @@ pub fn get_locales() -> impl Iterator<Item = String> {
 
 #[cfg(test)]
 mod tests {
-    use super::get_locales;
+    use super::{get_locale, get_locales};
     extern crate std;
 
     #[test]
     fn can_obtain_locale() {
+        assert!(get_locale().is_some(), "no locales were returned");
         let locales = get_locales();
         for (i, locale) in locales.enumerate() {
             assert!(!locale.is_empty(), "locale string {} was empty", i);
