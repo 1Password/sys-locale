@@ -22,8 +22,8 @@ impl EnvAccess for StdEnv {
     }
 }
 
-pub(crate) fn get() -> Option<String> {
-    _get(&StdEnv)
+pub(crate) fn get() -> impl Iterator<Item = String> {
+    _get(&StdEnv).into_iter()
 }
 
 fn _get(env: &impl EnvAccess) -> Option<String> {

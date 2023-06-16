@@ -70,6 +70,6 @@ fn read_locale() -> Option<String> {
     }
 }
 
-pub(crate) fn get() -> Option<String> {
-    read_locale()
+pub(crate) fn get() -> impl Iterator<Item = String> {
+    read_locale().into_iter()
 }

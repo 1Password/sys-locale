@@ -49,7 +49,11 @@ extern "C" {
     fn CFLocaleCopyPreferredLanguages() -> CFArrayRef;
 }
 
-pub(crate) fn get() -> Option<String> {
+pub(crate) fn get() -> impl Iterator<Item = String> {
+    _get().into_iter()
+}
+
+fn _get() -> Option<String> {
     let preferred_langs = unsafe {
         // SAFETY: This function is safe to call and has no invariants. Any value inside the
         // array will be owned by us.

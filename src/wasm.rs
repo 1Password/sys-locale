@@ -1,6 +1,6 @@
 use alloc::string::String;
 
-use js_sys::Object;
+use js_sys::{JsString, Object};
 use wasm_bindgen::{prelude::*, JsCast, JsValue};
 
 #[derive(Clone)]
@@ -43,9 +43,14 @@ fn global() -> GlobalType {
     }
 }
 
-pub(crate) fn get() -> Option<String> {
-    match global() {
-        GlobalType::Window(window) => window.navigator().language(),
-        GlobalType::Worker(worker) => worker.navigator().language(),
-    }
+pub(crate) fn get() -> impl Iterator<Item = String> {
+    let languages = match global() {
+        GlobalType::Window(window) => window.navigator().languages(),
+        GlobalType::Worker(worker) => worker.navigator().languages(),
+    };
+    languages
+        .values()
+        .into_iter()
+        .flat_map(|v| v.and_then(|v| v.dyn_into::<JsString>()))
+        .map(String::from)
 }

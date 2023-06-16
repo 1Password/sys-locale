@@ -52,12 +52,15 @@ use windows as provider;
 
 #[cfg(not(any(unix, all(target_family = "wasm", feature = "js", not(unix)), windows)))]
 mod provider {
-    pub fn get() -> Option<alloc::string::String> {
-        None
+    pub fn get() -> impl Iterator<Item = alloc::string::String> {
+        core::iter::empty()
     }
 }
 
 /// Returns the active locale for the system or application.
+///
+/// This may be equivalent to `get_locales().next()` (the first entry),
+/// depending on the platform.
 ///
 /// # Returns
 ///
@@ -74,18 +77,46 @@ mod provider {
 /// println!("The locale is {}", current_locale);
 /// ```
 pub fn get_locale() -> Option<String> {
+    get_locales().next()
+}
+
+/// Returns the preferred locales for the system or application, in descending order of preference.
+///
+/// # Returns
+///
+/// Returns a `Vec` with any number of BCP-47 language tags inside.
+/// If no locale preferences could be obtained, the vec will be empty.
+///
+/// # Example
+///
+/// ```no_run
+/// use sys_locale::get_locales;
+///
+/// let mut  locales = get_locales();
+///
+/// println!("The most preferred locale is {}", locales.next().unwrap_or("en-US".to_string()));
+/// println!("The least preferred locale is {}", locales.last().unwrap_or("en-US".to_string()));
+/// ```
+pub fn get_locales() -> impl Iterator<Item = String> {
     provider::get()
 }
 
 #[cfg(test)]
 mod tests {
-    use super::get_locale;
+    use super::{get_locale, get_locales};
     extern crate std;
 
     #[test]
     fn can_obtain_locale() {
-        let locale = get_locale().expect("locale should be present on most systems");
-        assert!(!locale.is_empty(), "locale string was empty");
-        assert!(!locale.ends_with('\0'), "locale contained trailing NUL");
+        assert!(get_locale().is_some(), "no locales were returned");
+        let locales = get_locales();
+        for (i, locale) in locales.enumerate() {
+            assert!(!locale.is_empty(), "locale string {} was empty", i);
+            assert!(
+                !locale.ends_with('\0'),
+                "locale {} contained trailing NUL",
+                i
+            );
+        }
     }
 }
