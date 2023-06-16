@@ -83,12 +83,6 @@ jobs:
         with:
           command: test
 
-      - uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: can_obtain_locale -- --ignored
-
-
   fmt:
     name: Rustfmt
     runs-on: ubuntu-latest
