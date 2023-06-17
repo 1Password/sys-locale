@@ -50,31 +50,22 @@ extern "C" {
 }
 
 pub(crate) fn get() -> impl Iterator<Item = String> {
-    _get().into_iter()
-}
-
-fn _get() -> Option<String> {
-    let preferred_langs = unsafe {
-        // SAFETY: This function is safe to call and has no invariants. Any value inside the
-        // array will be owned by us.
-        let langs = CFLocaleCopyPreferredLanguages();
-        if !langs.is_null() {
-            let langs = CFArray(langs);
-            // SAFETY: The returned array is a valid CFArray object.
-            if CFArrayGetCount(langs.0) != 0 {
-                langs
-            } else {
-                return None;
-            }
-        } else {
-            return None;
-        }
-    };
+    let preferred_langs = get_languages();
+    let mut idx = 0;
 
     #[allow(clippy::as_conversions)]
-    unsafe {
-        // SAFETY: The array has been checked that it contains at least one value.
-        let locale = CFArrayGetValueAtIndex(preferred_langs.0, 0) as CFStringRef;
+    core::iter::from_fn(move || unsafe {
+        let (langs, num_langs) = preferred_langs.as_ref()?;
+
+        // 0 to N-1 inclusive
+        if idx >= *num_langs {
+            return None;
+        }
+
+        // SAFETY: The current index has been checked that its still within bounds of the array.
+        // XXX: We don't retain the strings because we know we have total ownership of the backing array.
+        let locale = CFArrayGetValueAtIndex(langs.0, idx) as CFStringRef;
+        idx += 1;
 
         // SAFETY: `locale` is a valid CFString pointer because the array will always contain a value.
         let str_len = CFStringGetLength(locale);
@@ -142,6 +133,26 @@ fn _get() -> Option<String> {
         // write UTF-8 into the buffer, but the value is small enough that
         // using `from_utf8_unchecked` isn't worthwhile.
         String::from_utf8(buffer).ok()
+    })
+}
+
+fn get_languages() -> Option<(CFArray, CFIndex)> {
+    unsafe {
+        // SAFETY: This function is safe to call and has no invariants. Any value inside the
+        // array will be owned by us.
+        let langs = CFLocaleCopyPreferredLanguages();
+        if !langs.is_null() {
+            let langs = CFArray(langs);
+            // SAFETY: The returned array is a valid CFArray object.
+            let count = CFArrayGetCount(langs.0);
+            if count != 0 {
+                Some((langs, count))
+            } else {
+                None
+            }
+        } else {
+            None
+        }
     }
 }
 
