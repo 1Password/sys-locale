@@ -105,6 +105,25 @@ jobs:
           rustup target add wasm32-unknown-unknown
           wasm-pack test --firefox --headless -- --features "js"
 
+  test_fallback:
+    name: Check fallback implementation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          persist-credentials: false
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+
+      - name: "Clippy"
+      # Install a target that is obviously not supported and then check it to ensure
+      # the fallback target stays in sync with the other platforms.
+        run: |
+          rustup target add x86_64-unknown-none
+          cargo clippy --target x86_64-unknown-none -- -D clippy::dbg_macro -D warnings -D missing_docs -F unused_must_use
+
   fmt:
     name: Rustfmt
     runs-on: ubuntu-latest
