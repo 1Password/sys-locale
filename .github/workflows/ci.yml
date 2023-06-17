@@ -37,6 +37,9 @@ jobs:
           - { os: 'ubuntu-latest', target: 'armv7-linux-androideabi', cross: true }
           - { os: 'ubuntu-latest', target: 'x86_64-linux-android', cross: true }
           - { os: 'ubuntu-latest', target: 'i686-linux-android', cross: true }
+
+          # WASM
+          - { os: 'ubuntu-latest', target: 'wasm32-unknown-unknown', cross: false, always_install_target: true }
         rust:
           - stable
           # MSRV
@@ -52,7 +55,7 @@ jobs:
           components: clippy
 
       - name: Install cross-target
-        if: matrix.triple.cross
+        if: matrix.triple.cross || matrix.triple.always_install_target
         run: rustup target add ${{ matrix.triple.target }}
 
       - uses: actions-rs/cargo@v1
@@ -62,7 +65,7 @@ jobs:
           use-cross: ${{ matrix.triple.cross }}
 
   test:
-    name: Test
+    name: Test Desktop OSes
     strategy:
       matrix:
         os:
@@ -82,6 +85,25 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: test
+
+  test_wasm:
+    name: Test wasm32-unknown-unknown
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          persist-credentials: false
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+
+      - name: Install wasm-pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+      - name: Test wasm32
+        run: |
+          rustup target add wasm32-unknown-unknown
+          wasm-pack test --firefox --headless -- --features "js"
 
   fmt:
     name: Rustfmt

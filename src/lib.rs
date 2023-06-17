@@ -106,6 +106,11 @@ mod tests {
     use super::{get_locale, get_locales};
     extern crate std;
 
+    #[cfg(all(target_family = "wasm", feature = "js", not(unix)))]
+    use wasm_bindgen_test::wasm_bindgen_test as test;
+    #[cfg(all(target_family = "wasm", feature = "js", not(unix)))]
+    wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
+
     #[test]
     fn can_obtain_locale() {
         assert!(get_locale().is_some(), "no locales were returned");

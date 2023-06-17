@@ -26,3 +26,6 @@ web-sys = { version = "0.3", features = ["Window", "WorkerGlobalScope", "Navigat
 
 [features]
 js = ["js-sys", "wasm-bindgen", "web-sys"]
+
+[target.'cfg(all(target_family = "wasm", not(unix)))'.dev-dependencies]
+wasm-bindgen-test = "0.3"
