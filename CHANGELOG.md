@@ -4,6 +4,16 @@ Notable changes to this project will be documented in the [keep a changelog](htt
 
 ## [Unreleased]
 
+## [0.3.1] - 2023-08-27
+
+### Added
+- Added support for getting a list of user locales in their preferred order via `get_locales`.
+  - Additional locales are currently supported on iOS, macOS, WASM, and Windows. Other platforms will
+  only return a single locale like `get_locale` does.
+
+### Changed
+- Removed `windows-sys` dependency
+
 ## [0.3.0] - 2023-04-04
 
 ### Changed
@@ -34,7 +44,7 @@ Notable changes to this project will be documented in the [keep a changelog](htt
 
 ## [0.2.1] - 2022-06-16
 
-### New
+### Added
 
 - The crate now supports being used via WASM in a WebWorker environment.
 
@@ -52,7 +62,7 @@ Notable changes to this project will be documented in the [keep a changelog](htt
 
 Initial release
 
-[Unreleased]: https://github.com/1Password/sys-locale/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/1Password/sys-locale/compare/v0.3.1...HEAD
 [0.1.0]: https://github.com/1Password/sys-locale/releases/tag/v0.1.0
 [0.2.0]: https://github.com/1Password/sys-locale/releases/tag/v0.2.0
 [0.2.1]: https://github.com/1Password/sys-locale/releases/tag/v0.2.1
@@ -60,3 +70,4 @@ Initial release
 [0.2.3]: https://github.com/1Password/sys-locale/releases/tag/v0.2.3
 [0.2.4]: https://github.com/1Password/sys-locale/releases/tag/v0.2.4
 [0.3.0]: https://github.com/1Password/sys-locale/releases/tag/v0.3.0
+[0.3.1]: https://github.com/1Password/sys-locale/releases/tag/v0.3.1
