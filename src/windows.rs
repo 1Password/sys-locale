@@ -1,6 +1,8 @@
 use alloc::{string::String, vec::Vec};
-use windows_sys::Win32::Foundation::TRUE;
-use windows_sys::Win32::Globalization::{GetUserPreferredUILanguages, MUI_LANGUAGE_NAME};
+
+#[path = "./windows_sys.rs"]
+mod windows_sys;
+use windows_sys::{GetUserPreferredUILanguages, MUI_LANGUAGE_NAME, TRUE};
 
 #[allow(clippy::as_conversions)]
 pub(crate) fn get() -> impl Iterator<Item = String> {

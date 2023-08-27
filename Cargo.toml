@@ -12,13 +12,6 @@ license = "MIT OR Apache-2.0"
 [target.'cfg(target_os = "android")'.dependencies]
 libc = "0.2"
 
-[target.'cfg(windows)'.dependencies.windows-sys]
-version = "0.48"
-features = [
-    "Win32_Globalization",
-    "Win32_Foundation"
-]
-
 [target.'cfg(all(target_family = "wasm", not(unix)))'.dependencies]
 js-sys = { version = "0.3", optional = true }
 wasm-bindgen = { version = "0.2", optional = true }

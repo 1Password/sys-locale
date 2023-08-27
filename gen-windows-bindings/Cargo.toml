@@ -1,0 +1,12 @@
+[package]
+name = "gen-windows-bindings"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+windows-bindgen = "0.51"
+
+# Prevent this from interfering with workspaces
+[workspace]
+members = ["."]
