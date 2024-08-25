@@ -1,4 +1,3 @@
-#![allow(unknown_lints)]
 use std::{env, ffi::OsStr};
 
 const LC_ALL: &str = "LC_ALL";
@@ -36,11 +35,11 @@ fn _get(env: &impl EnvAccess) -> Option<String> {
 }
 
 fn parse_locale_code(code: &str) -> Option<String> {
-    // Some locales are returned with the char encoding too: `en_US.UTF-8`
-    // TODO: Once we bump MSRV >= 1.52, remove this allow and clean up
-    #[allow(clippy::manual_split_once)]
-    #[allow(clippy::needless_splitn)]
-    code.splitn(2, '.').next().map(|s| s.replace('_', "-"))
+    // Some locales are returned with the char encoding too, such as `en_US.UTF-8`
+    code.split_once('.')
+        .map(|(s, _)| s)
+        .or(Some(code))
+        .map(|s| s.replace('_', "-"))
 }
 
 #[cfg(test)]
