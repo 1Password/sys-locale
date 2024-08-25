@@ -22,8 +22,7 @@ pub(crate) fn get() -> impl Iterator<Item = String> {
         return Vec::new().into_iter();
     }
 
-    let mut buffer = Vec::<u16>::new();
-    buffer.resize(buffer_length as usize, 0);
+    let mut buffer = Vec::<u16>::with_capacity(buffer_length as usize);
 
     // Now that we have an appropriate buffer, we can query the names
     let mut result = Vec::with_capacity(num_languages as usize);
@@ -37,6 +36,8 @@ pub(crate) fn get() -> impl Iterator<Item = String> {
     } == TRUE;
 
     if success {
+        // SAFETY: Windows wrote the required length worth of UTF-16 into our buffer, which initialized it.
+        unsafe { buffer.set_len(buffer_length as usize) };
         // The buffer contains names split by null char (0), and ends with two null chars (00)
         for part in buffer.split(|i| *i == 0).filter(|p| !p.is_empty()) {
             if let Ok(locale) = String::from_utf16(part) {
