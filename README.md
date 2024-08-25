@@ -2,7 +2,7 @@
 
 [![crates.io version](https://img.shields.io/crates/v/sys-locale.svg)](https://crates.io/crates/sys-locale)
 [![crate documentation](https://docs.rs/sys-locale/badge.svg)](https://docs.rs/sys-locale)
-![MSRV](https://img.shields.io/badge/rustc-1.48+-blue.svg)
+![MSRV](https://img.shields.io/badge/rustc-1.56+-blue.svg)
 [![crates.io downloads](https://img.shields.io/crates/d/sys-locale.svg)](https://crates.io/crates/sys-locale)
 ![CI](https://github.com/1Password/sys-locale/workflows/CI/badge.svg)
 
@@ -32,7 +32,7 @@ println!("The current locale is {}", locale);
 
 ## MSRV
 
-The Minimum Supported Rust Version is currently 1.48.0. This will be bumped to the latest stable version of Rust when needed.
+The Minimum Supported Rust Version is currently 1.56.0. This will be bumped to a newer stable version of Rust when needed.
 
 ## Credits
 

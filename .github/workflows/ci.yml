@@ -43,7 +43,7 @@ jobs:
         rust:
           - stable
           # MSRV
-          - 1.48.0
+          - 1.56.0
     steps:
       - uses: actions/checkout@v2
         with:
