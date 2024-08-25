@@ -28,7 +28,9 @@ pub(crate) fn get() -> impl Iterator<Item = String> {
 fn _get(env: &impl EnvAccess) -> Option<String> {
     let code = env
         .get(LC_ALL)
+        .filter(|val| !val.is_empty())
         .or_else(|| env.get(LC_CTYPE))
+        .filter(|val| !val.is_empty())
         .or_else(|| env.get(LANG))?;
 
     parse_locale_code(&code)
@@ -96,5 +98,27 @@ mod tests {
 
         env.insert(LC_ALL.into(), "invalid-again".to_owned());
         assert_eq!(_get(&env).as_deref(), Some("invalid-again"));
+    }
+
+    #[test]
+    fn env_skips_empty_options() {
+        let mut env = MockEnv::new();
+        assert_eq!(_get(&env), None);
+
+        // Skip the 1st of three variables.
+        env.insert(LC_ALL.into(), String::new());
+        env.insert(LC_CTYPE.into(), PARSE_LOCALE.to_owned());
+
+        let set_code = _get(&env).unwrap();
+        assert_eq!(set_code, PARSE_LOCALE);
+        assert_eq!(parse_locale_code(&set_code).as_deref(), Some(PARSE_LOCALE));
+
+        // Ensure the 2nd will be skipped when empty as well.
+        env.insert(LC_CTYPE.into(), String::new());
+        env.insert(LANG.into(), PARSE_LOCALE.to_owned());
+
+        let set_code = _get(&env).unwrap();
+        assert_eq!(set_code, PARSE_LOCALE);
+        assert_eq!(parse_locale_code(&set_code).as_deref(), Some(PARSE_LOCALE));
     }
 }
