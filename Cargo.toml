@@ -9,6 +9,12 @@ edition = "2018"
 license = "MIT OR Apache-2.0"
 rust-version = "1.56"
 
+exclude = [
+	"/.github/",
+	"/examples/",
+	"/tests/"
+]
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [target.'cfg(target_os = "android")'.dependencies]
 libc = "0.2"
