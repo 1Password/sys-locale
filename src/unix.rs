@@ -33,20 +33,56 @@ fn _get(env: &impl EnvAccess) -> Option<String> {
         .filter(|val| !val.is_empty())
         .or_else(|| env.get(LANG))?;
 
-    parse_locale_code(&code)
+    Some(posix_to_bcp47(&code))
 }
 
-fn parse_locale_code(code: &str) -> Option<String> {
-    // Some locales are returned with the char encoding too, such as `en_US.UTF-8`
-    code.split_once('.')
-        .map(|(s, _)| s)
-        .or(Some(code))
-        .map(|s| s.replace('_', "-"))
+/// Converts a POSIX locale string to a BCP 47 locale string.
+///
+/// This function processes the input `code` by removing any character encoding
+/// (the part after the `.` character) and any modifiers (the part after the `@` character).
+/// It replaces underscores (`_`) with hyphens (`-`) to conform to BCP 47 formatting.
+///
+/// If the locale is already in the BCP 47 format, no changes are made.
+///
+/// Useful links:
+/// - [The Open Group Base Specifications Issue 8 - 7. Locale](https://pubs.opengroup.org/onlinepubs/9799919799/basedefs/V1_chap07.html)
+/// - [The Open Group Base Specifications Issue 8 - 8. Environment Variables](https://pubs.opengroup.org/onlinepubs/9799919799/basedefs/V1_chap08.html)
+/// - [BCP 47 specification](https://www.ietf.org/rfc/bcp/bcp47.html)
+///
+/// # Examples
+///
+/// ```ignore
+/// let bcp47 = posix_to_bcp47("en-US"); // already BCP 47
+/// assert_eq!(bcp47, "en-US"); // no changes
+///
+/// let bcp47 = posix_to_bcp47("en_US");
+/// assert_eq!(bcp47, "en-US");
+///
+/// let bcp47 = posix_to_bcp47("ru_RU.UTF-8");
+/// assert_eq!(bcp47, "ru-RU");
+///
+/// let bcp47 = posix_to_bcp47("fr_FR@dict");
+/// assert_eq!(bcp47, "fr-FR");
+///
+/// let bcp47 = posix_to_bcp47("de_DE.UTF-8@euro");
+/// assert_eq!(bcp47, "de-DE");
+/// ```
+///
+/// # TODO
+///
+/// 1. Implement POSIX to BCP 47 modifier conversion (see https://github.com/1Password/sys-locale/issues/32).
+/// 2. Optimize to avoid creating a new buffer (see https://github.com/1Password/sys-locale/pull/33).
+fn posix_to_bcp47(locale: &str) -> String {
+    locale
+        .chars()
+        .take_while(|&c| c != '.' && c != '@')
+        .map(|c| if c == '_' { '-' } else { c })
+        .collect()
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{parse_locale_code, EnvAccess, _get, LANG, LC_ALL, LC_CTYPE};
+    use super::{posix_to_bcp47, EnvAccess, _get, LANG, LC_ALL, LC_CTYPE};
     use std::{
         collections::HashMap,
         ffi::{OsStr, OsString},
@@ -59,26 +95,19 @@ mod tests {
         }
     }
 
-    const PARSE_LOCALE: &str = "fr-FR";
-    const LANG_PARSE_LOCALE: &str = "fr_FR";
+    const BCP_47: &str = "fr-FR";
+    const POSIX: &str = "fr_FR";
+    const POSIX_ENC: &str = "fr_FR.UTF-8";
+    const POSIX_MOD: &str = "fr_FR@euro";
+    const POSIX_ENC_MOD: &str = "fr_FR.UTF-8@euro";
 
     #[test]
     fn parse_identifier() {
-        let identifier = "fr_FR.UTF-8";
-        assert_eq!(parse_locale_code(identifier).as_deref(), Some(PARSE_LOCALE));
-    }
-
-    #[test]
-    fn parse_non_suffixed_identifier() {
-        assert_eq!(
-            parse_locale_code(PARSE_LOCALE).as_deref(),
-            Some(PARSE_LOCALE)
-        );
-
-        assert_eq!(
-            parse_locale_code(LANG_PARSE_LOCALE).as_deref(),
-            Some(PARSE_LOCALE)
-        );
+        assert_eq!(posix_to_bcp47(BCP_47), BCP_47);
+        assert_eq!(posix_to_bcp47(POSIX), BCP_47);
+        assert_eq!(posix_to_bcp47(POSIX_ENC), BCP_47);
+        assert_eq!(posix_to_bcp47(POSIX_MOD), BCP_47);
+        assert_eq!(posix_to_bcp47(POSIX_ENC_MOD), BCP_47);
     }
 
     #[test]
@@ -107,18 +136,18 @@ mod tests {
 
         // Skip the 1st of three variables.
         env.insert(LC_ALL.into(), String::new());
-        env.insert(LC_CTYPE.into(), PARSE_LOCALE.to_owned());
+        env.insert(LC_CTYPE.into(), BCP_47.to_owned());
 
-        let set_code = _get(&env).unwrap();
-        assert_eq!(set_code, PARSE_LOCALE);
-        assert_eq!(parse_locale_code(&set_code).as_deref(), Some(PARSE_LOCALE));
+        let set_locale = _get(&env).unwrap();
+        assert_eq!(set_locale, BCP_47);
+        assert_eq!(posix_to_bcp47(&set_locale), BCP_47);
 
         // Ensure the 2nd will be skipped when empty as well.
         env.insert(LC_CTYPE.into(), String::new());
-        env.insert(LANG.into(), PARSE_LOCALE.to_owned());
+        env.insert(LANG.into(), BCP_47.to_owned());
 
-        let set_code = _get(&env).unwrap();
-        assert_eq!(set_code, PARSE_LOCALE);
-        assert_eq!(parse_locale_code(&set_code).as_deref(), Some(PARSE_LOCALE));
+        let set_locale = _get(&env).unwrap();
+        assert_eq!(set_locale, BCP_47);
+        assert_eq!(posix_to_bcp47(&set_locale), BCP_47);
     }
 }
