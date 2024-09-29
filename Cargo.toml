@@ -12,7 +12,8 @@ rust-version = "1.56"
 exclude = [
 	"/.github/",
 	"/examples/",
-	"/tests/"
+	"/tests/",
+	"/.gitignore"
 ]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
