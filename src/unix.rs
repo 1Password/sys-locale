@@ -1,7 +1,8 @@
 use std::{env, ffi::OsStr};
 
+const LANGUAGE: &str = "LANGUAGE";
 const LC_ALL: &str = "LC_ALL";
-const LC_CTYPE: &str = "LC_CTYPE";
+const LC_MESSAGES: &str = "LC_MESSAGES";
 const LANG: &str = "LANG";
 
 /// Environment variable access abstraction to allow testing without
@@ -22,18 +23,71 @@ impl EnvAccess for StdEnv {
 }
 
 pub(crate) fn get() -> impl Iterator<Item = String> {
-    _get(&StdEnv).into_iter()
+    _get(&StdEnv)
 }
 
-fn _get(env: &impl EnvAccess) -> Option<String> {
-    let code = env
-        .get(LC_ALL)
-        .filter(|val| !val.is_empty())
-        .or_else(|| env.get(LC_CTYPE))
-        .filter(|val| !val.is_empty())
-        .or_else(|| env.get(LANG))?;
+/// Retrieves a list of unique locales by checking specific environment variables
+/// in a predefined order: LANGUAGE, LC_ALL, LC_MESSAGES, and LANG.
+///
+/// The function first checks the `LANGUAGE` environment variable, which can contain
+/// one or more locales separated by a colon (`:`). It then splits these values,
+/// converts them from [POSIX](https://pubs.opengroup.org/onlinepubs/9799919799/basedefs/V1_chap08.html)
+/// to [BCP 47](https://www.ietf.org/rfc/bcp/bcp47.html) format, and adds them to the list of locales
+/// if they are not already included.
+///
+/// Next, the function checks the `LC_ALL`, `LC_MESSAGES`, and `LANG` environment
+/// variables. Each of these variables contains a single locale. If a locale is found,
+/// and it's not empty, it is converted to BCP 47 format and added to the list if
+/// it is not already included.
+///
+/// For more information check this issue: https://github.com/1Password/sys-locale/issues/14.
+///
+/// The function ensures that locales are returned in the order of precedence
+/// and without duplicates. The final list of locales is returned as an iterator.
+///
+/// # Returns
+///
+/// An iterator over the unique locales found in the environment variables.
+///
+/// # Environment Variables Checked
+///
+/// 1. `LANGUAGE` - Can contain multiple locales, each separated by a colon (`:`), highest priority.
+/// 2. `LC_ALL` - Contains a single locale, high priority.
+/// 3. `LC_MESSAGES` - Contains a single locale, medium priority.
+/// 4. `LANG` - Contains a single locale, low priority.
+///
+/// # Example
+///
+/// ```ignore
+/// let locales: Vec<String> = _get(&env).collect();
+/// for locale in locales {
+///     println!("User's preferred locales: {}", locale);
+/// }
+/// ```
+fn _get(env: &impl EnvAccess) -> impl Iterator<Item = String> {
+    let mut locales = Vec::new();
 
-    Some(posix_to_bcp47(&code))
+    // LANGUAGE contains one or multiple locales separated by colon (':')
+    if let Some(val) = env.get(LANGUAGE).filter(|val| !val.is_empty()) {
+        for part in val.split(':') {
+            let locale = posix_to_bcp47(part);
+            if !locales.contains(&locale) {
+                locales.push(locale);
+            }
+        }
+    }
+
+    // LC_ALL, LC_MESSAGES and LANG contain one locale
+    for variable in [LC_ALL, LC_MESSAGES, LANG] {
+        if let Some(val) = env.get(variable).filter(|val| !val.is_empty()) {
+            let locale = posix_to_bcp47(&val);
+            if !locales.contains(&locale) {
+                locales.push(locale);
+            }
+        }
+    }
+
+    locales.into_iter()
 }
 
 /// Converts a POSIX locale string to a BCP 47 locale string.
@@ -82,7 +136,7 @@ fn posix_to_bcp47(locale: &str) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::{posix_to_bcp47, EnvAccess, _get, LANG, LC_ALL, LC_CTYPE};
+    use super::{EnvAccess, _get, posix_to_bcp47, LANG, LANGUAGE, LC_ALL, LC_MESSAGES};
     use std::{
         collections::HashMap,
         ffi::{OsStr, OsString},
@@ -111,43 +165,132 @@ mod tests {
     }
 
     #[test]
-    fn env_priority() {
+    fn env_get() {
+        fn case(
+            env: &mut MockEnv,
+            language: impl Into<String>,
+            lc_all: impl Into<String>,
+            lc_messages: impl Into<String>,
+            lang: impl Into<String>,
+            expected: impl IntoIterator<Item = impl Into<String>>,
+        ) {
+            env.insert(LANGUAGE.into(), language.into());
+            env.insert(LC_ALL.into(), lc_all.into());
+            env.insert(LC_MESSAGES.into(), lc_messages.into());
+            env.insert(LANG.into(), lang.into());
+            assert!(_get(env).eq(expected.into_iter().map(|s| s.into())));
+        }
+
         let mut env = MockEnv::new();
-        assert_eq!(_get(&env), None);
+        assert_eq!(_get(&env).next(), None);
 
-        // These locale names are technically allowed and some systems may still
-        // defined aliases such as these but the glibc sources mention that this
-        // should be considered deprecated
+        // Empty
+        case(&mut env, "", "", "", "", &[] as &[String]);
 
-        env.insert(LANG.into(), "invalid".to_owned());
-        assert_eq!(_get(&env).as_deref(), Some("invalid"));
+        // Constants
+        case(
+            &mut env,
+            POSIX_ENC_MOD,
+            POSIX_ENC,
+            POSIX_MOD,
+            POSIX,
+            [BCP_47],
+        );
 
-        env.insert(LC_CTYPE.into(), "invalid-also".to_owned());
-        assert_eq!(_get(&env).as_deref(), Some("invalid-also"));
+        // Only one variable
+        case(&mut env, "en_US", "", "", "", ["en-US"]);
+        case(&mut env, "", "en_US", "", "", ["en-US"]);
+        case(&mut env, "", "", "en_US", "", ["en-US"]);
+        case(&mut env, "", "", "", "en_US", ["en-US"]);
 
-        env.insert(LC_ALL.into(), "invalid-again".to_owned());
-        assert_eq!(_get(&env).as_deref(), Some("invalid-again"));
-    }
+        // Duplicates
+        case(&mut env, "en_US", "en_US", "en_US", "en_US", ["en-US"]);
+        case(
+            &mut env,
+            "en_US",
+            "en_US",
+            "ru_RU",
+            "en_US",
+            ["en-US", "ru-RU"],
+        );
+        case(
+            &mut env,
+            "en_US",
+            "ru_RU",
+            "ru_RU",
+            "en_US",
+            ["en-US", "ru-RU"],
+        );
+        case(
+            &mut env,
+            "en_US",
+            "es_ES",
+            "ru_RU",
+            "en_US",
+            ["en-US", "es-ES", "ru-RU"],
+        );
+        case(
+            &mut env,
+            "en_US:ru_RU:es_ES:en_US",
+            "es_ES",
+            "ru_RU",
+            "en_US",
+            ["en-US", "ru-RU", "es-ES"],
+        );
 
-    #[test]
-    fn env_skips_empty_options() {
-        let mut env = MockEnv::new();
-        assert_eq!(_get(&env), None);
+        // Duplicates with different case
+        case(
+            &mut env,
+            "en_US:fr_fr",
+            "EN_US",
+            "fR_Fr",
+            "En_US",
+            ["en-US", "fr-fr", "EN-US", "fR-Fr", "En-US"],
+        );
 
-        // Skip the 1st of three variables.
-        env.insert(LC_ALL.into(), String::new());
-        env.insert(LC_CTYPE.into(), BCP_47.to_owned());
+        // More complicated cases
+        case(
+            &mut env,
+            "ru_RU:ru:en_US:en",
+            "ru_RU.UTF-8",
+            "ru_RU.UTF-8",
+            "ru_RU.UTF-8",
+            ["ru-RU", "ru", "en-US", "en"],
+        );
+        case(
+            &mut env,
+            "fr_FR.UTF-8@euro:fr_FR.UTF-8:fr_FR:fr:en_US.UTF-8:en_US:en",
+            "es_ES.UTF-8@euro",
+            "fr_FR.UTF-8@euro",
+            "fr_FR.UTF-8@euro",
+            ["fr-FR", "fr", "en-US", "en", "es-ES"],
+        );
+        case(
+            &mut env,
+            "",
+            "es_ES.UTF-8@euro",
+            "fr_FR.UTF-8@euro",
+            "fr_FR.UTF-8@euro",
+            ["es-ES", "fr-FR"],
+        );
+        case(
+            &mut env,
+            "fr_FR@euro",
+            "fr_FR.UTF-8",
+            "en_US.UTF-8",
+            "en_US.UTF-8@dict",
+            ["fr-FR", "en-US"],
+        );
 
-        let set_locale = _get(&env).unwrap();
-        assert_eq!(set_locale, BCP_47);
-        assert_eq!(posix_to_bcp47(&set_locale), BCP_47);
-
-        // Ensure the 2nd will be skipped when empty as well.
-        env.insert(LC_CTYPE.into(), String::new());
-        env.insert(LANG.into(), BCP_47.to_owned());
-
-        let set_locale = _get(&env).unwrap();
-        assert_eq!(set_locale, BCP_47);
-        assert_eq!(posix_to_bcp47(&set_locale), BCP_47);
+        // Already BCP 47
+        case(&mut env, BCP_47, BCP_47, BCP_47, POSIX, [BCP_47]);
+        case(
+            &mut env,
+            "fr-FR",
+            "es-ES",
+            "de-DE",
+            "en-US",
+            ["fr-FR", "es-ES", "de-DE", "en-US"],
+        );
     }
 }
