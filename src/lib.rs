@@ -57,15 +57,14 @@ mod provider {
     }
 }
 
-/// Returns the active locale for the system or application.
+/// Returns the most preferred locale for the system or application.
 ///
-/// This may be equivalent to `get_locales().next()` (the first entry),
-/// depending on the platform.
+/// This is equivalent to `get_locales().next()` (the first entry).
 ///
 /// # Returns
 ///
-/// Returns `Some(String)` with a BCP-47 language tag inside. If the locale
-/// couldn't be obtained, `None` is returned instead.
+/// Returns [`Some(String)`] with a BCP 47 language tag inside.  
+/// If the locale couldn't be obtained, [`None`] is returned instead.
 ///
 /// # Example
 ///
@@ -84,8 +83,8 @@ pub fn get_locale() -> Option<String> {
 ///
 /// # Returns
 ///
-/// Returns a `Vec` with any number of BCP-47 language tags inside.
-/// If no locale preferences could be obtained, the vec will be empty.
+/// Returns an [`Iterator`] with any number of BCP 47 language tags inside.  
+/// If no locale preferences could be obtained, the iterator will be empty.
 ///
 /// # Example
 ///
