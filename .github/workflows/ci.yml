@@ -89,6 +89,18 @@ jobs:
         with:
           command: test
 
+  test_ios:
+    name: "Test iOS (Catalyst)"
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        persist-credentials: false
+    - name: Run iOS tests
+      run: |
+        rustup target add aarch64-apple-ios-macabi
+        cargo test --target aarch64-apple-ios-macabi
+
   test_wasm:
     name: Test wasm32-unknown-unknown
     runs-on: ubuntu-latest
