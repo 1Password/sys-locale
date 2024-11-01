@@ -155,3 +155,12 @@ jobs:
         with:
           command: fmt
           args: --all -- --check
+
+  semver:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Check semver
+        uses: obi1kenobi/cargo-semver-checks-action@v2
