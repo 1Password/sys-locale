@@ -2,20 +2,12 @@
 //!
 //! This library currently supports the following platforms:
 //! - Android
-//! - iOS
+//! - iOS (and derivatives such as watchOS, tvOS, and visionOS)
 //! - macOS
 //! - Linux, BSD, and other UNIX variations
 //! - WebAssembly on the web (via the `js` feature)
 //! - Windows
-#![cfg_attr(
-    any(
-        not(unix),
-        target_os = "macos",
-        target_os = "ios",
-        target_os = "android"
-    ),
-    no_std
-)]
+#![cfg_attr(any(not(unix), target_vendor = "apple", target_os = "android"), no_std)]
 extern crate alloc;
 use alloc::string::String;
 
@@ -24,20 +16,14 @@ mod android;
 #[cfg(target_os = "android")]
 use android as provider;
 
-#[cfg(any(target_os = "macos", target_os = "ios"))]
+#[cfg(target_vendor = "apple")]
 mod apple;
-#[cfg(any(target_os = "macos", target_os = "ios"))]
+#[cfg(target_vendor = "apple")]
 use apple as provider;
 
-#[cfg(all(
-    unix,
-    not(any(target_os = "macos", target_os = "ios", target_os = "android"))
-))]
+#[cfg(all(unix, not(any(target_vendor = "apple", target_os = "android"))))]
 mod unix;
-#[cfg(all(
-    unix,
-    not(any(target_os = "macos", target_os = "ios", target_os = "android"))
-))]
+#[cfg(all(unix, not(any(target_vendor = "apple", target_os = "android"))))]
 use unix as provider;
 
 #[cfg(all(target_family = "wasm", feature = "js", not(unix)))]

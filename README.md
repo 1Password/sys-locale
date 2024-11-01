@@ -12,7 +12,7 @@ A small and lightweight Rust library to get the current active locale on the sys
 
 Platform support currently includes:
 - Android
-- iOS
+- iOS (and derivatives such as watchOS, tvOS, and visionOS)
 - macOS
 - Linux, BSD, and other UNIX variations
 - WebAssembly, for the following platforms:
