@@ -136,7 +136,7 @@ fn posix_to_bcp47(locale: &str) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::{EnvAccess, _get, posix_to_bcp47, LANG, LANGUAGE, LC_ALL, LC_MESSAGES};
+    use super::{_get, posix_to_bcp47, EnvAccess, LANG, LANGUAGE, LC_ALL, LC_MESSAGES};
     use std::{
         collections::HashMap,
         ffi::{OsStr, OsString},
